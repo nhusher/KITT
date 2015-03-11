@@ -10,7 +10,8 @@
 								 [clj-http "1.0.1"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [cheshire "5.4.0"]
-                 [environ "1.0.0"]]
+                 [environ "1.0.0"]
+                 [clojail "1.0.6"]]
 
   :main ^:skip-aot kitt.core
   :target-path "target/%s"
