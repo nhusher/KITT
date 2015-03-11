@@ -8,6 +8,11 @@
             [ clojail.core       :refer [ sandbox safe-read ]]
             [ clojail.testers    :refer [ secure-tester ]]))
 
+(def befuddl [ "Gabh mo leithscéal?" "I'm sorry, I can't do that, Michael." "I don't understand." ])
+
+(defn befuddled []
+  (randth befuddl))
+
 (defn make-message
   ([msg] (make-message msg (env :slack-default-channel)))
   ([msg channel]
@@ -85,7 +90,7 @@
              (if ret (str "`" (pr-str ret) "`"))))
       (catch Exception e
         (prn (.getMessage e))
-        "Gabh mo leithscéal?"))
+        (befuddled)))
     ;; TODO: add more options
     :else nil))
 
