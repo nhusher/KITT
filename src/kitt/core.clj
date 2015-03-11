@@ -19,12 +19,11 @@
 (defn eval-sandboxed [ form-str ]
    (let [sb (sandbox secure-tester)
          writer (java.io.StringWriter.)
-         result (try (sb (safe-read form-str) {#'*out* writer})
-                     (catch Exception e
-                       (.getMessage e)))]
-
+         result (sb (safe-read form-str) {#'*out* writer})]
      [ (str writer) result ]))
 
+;; TODO: make this a record or component or something
+;; TODO: detect default channel by plucking out the :channels [ :is_general ] flag
 (defn make-socket
   ;; Clean up after the channels we make if we make them:
   ([ token in-ch ]
@@ -77,12 +76,18 @@
 (defmethod parse-message :default [m]
   nil)
 
-
 (defmethod parse-message [:message] [m]
-  (if (re-matches #"(?s)^,\(.+" (:text m))
+  (cond
+    (re-matches #"(?s)^,\(.+" (:text m))
+    (try
       (let [[out ret] (eval-sandboxed (clojure.string/replace (:text m) #"," ""))]
         (str (if out (str out "\n"))
-             (if ret (str "`" (pr-str ret) "`"))))))
+             (if ret (str "`" (pr-str ret) "`"))))
+      (catch Exception e
+        (prn (.getMessage e))
+        "Gabh mo leithscéal?"))
+    ;; TODO: add more options
+    :else nil))
 
 (defmethod parse-message [:message :message_changed] [m]
   (parse-message (:message m)))
