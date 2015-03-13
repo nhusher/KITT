@@ -11,7 +11,7 @@
 (def befuddl [ "Gabh mo leithscéal?" "I'm sorry, I can't do that, Michael." "I don't understand." ])
 
 (defn befuddled []
-  (randth befuddl))
+  (rand-nth befuddl))
 
 (defn make-message
   ([msg] (make-message msg (env :slack-default-channel)))
@@ -83,15 +83,20 @@
 
 (defmethod parse-message [:message] [m]
   (cond
-    (re-matches #"(?s)^,\(.+" (:text m))
+    (re-matches #"(?s)^`\(.+\)\s*`$" (:text m))
     (try
-      (let [[out ret] (eval-sandboxed (clojure.string/replace (:text m) #"," ""))]
+      (let [[out ret] (eval-sandboxed (apply str (rest (:text m))))]
         (str (if out (str out "\n"))
              (if ret (str "`" (pr-str ret) "`"))))
       (catch Exception e
         (prn (.getMessage e))
         (befuddled)))
     ;; TODO: add more options
+
+    (re-matches #"`botsnack" (:text m))
+    "Om nom nom nom."
+
+
     :else nil))
 
 (defmethod parse-message [:message :message_changed] [m]
@@ -100,12 +105,13 @@
 (defmethod parse-message [:hello] [m]
   ":bender: I'm back, baby!")
 
+
 (defn make-bot [ token ]
   (let [in-ch (chan)
         ctrl-ch (chan)
         {:keys [close-sock! out-ch log-ch ]} (make-socket token in-ch)]
 
-    #_ (go-loop []
+    (go-loop []
       (let [[v ch] (async/alts! [log-ch ctrl-ch])]
         (when-not (nil? v)
           (prn v)
