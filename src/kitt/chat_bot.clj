@@ -4,7 +4,8 @@
             [clojure.core.async :as async :refer [>!]]
             [kitt.chat-socket :refer [send-message!]]
             [kitt.eval :refer [eval-sandboxed]]
-            [kitt.github :as github]))
+            [kitt.github :as github]
+            [kitt.utils :as u]))
 
 (timbre/refer-timbre)
 
@@ -13,6 +14,12 @@
 
 (def befuddl ["Gabh mo leithscéal?" "I'm sorry, I don't understand." "I don't know."])
 (defn befuddled [] (rand-nth befuddl))
+
+(defn critical-issues []
+  (let [formatted (->> (github/get-critical-issues)
+                       (map u/format-issue)
+                       (clojure.string/join "\n"))]
+    (when-not (empty? formatted) formatted)))
 
 (defn parse-message [message]
   (cond
@@ -30,7 +37,7 @@
         (befuddled))
 
     (re-matches #"[Cc]ritical.*\?$" message)
-    (github/critical-issues)
+    (or (critical-issues) "_I don't see any critical issues right now._")
 
     (re-matches #"botsnack" message)
     ":pizza: Om nom nom nom."

@@ -8,12 +8,6 @@
 
 (timbre/refer-timbre)
 
-(defn get-chat-info [token]
-  (:body (client/post "https://slack.com/api/rtm.start"
-                      {:accept      :json
-                       :as          :json
-                       :form-params {:token token}})))
-
 (defrecord ChatSocket [url send-ch recv-ch]
   component/Lifecycle
   (start [this]
